@@ -65,6 +65,52 @@ Vivido en `exercises/01-server-actions-basico/app/advanced/`. Cuando una Server 
 
 **Gotcha con estado en memoria durante pruebas manuales:** si el "almacén" de datos del ejercicio es un array en memoria del proceso de Node (sin base de datos), un valor inválido guardado *antes* de corregir una validación se queda ahí para siempre hasta reiniciar el servidor de desarrollo — el array no se vacía solo con cada guardado. Al depurar "por qué se sigue colando un valor inválido", conviene descartar primero dato residual de una prueba anterior antes de sospechar de la lógica de validación.
 
+## Validación declarativa con `zod` (reemplazo de los `if` manuales)
+
+Vivido en `exercises/01-server-actions-basico/app/advanced-zod/`, repasando `zod` desde cero (primera vez viendo la librería en código, con experiencia previa en Formik + Yup como punto de referencia).
+
+**Idea central:** en vez de escribir `if`s que comprueban cada campo y concatenan errores a mano, describes la **forma y las reglas** del dato de forma declarativa (`z.object({...})`), y la librería valida y estructura los errores por ti.
+
+**API mínima:**
+```ts
+const schema = z.object({
+  firstname: z.string().min(5, 'mensaje'),
+  phoneNumber: z.string().regex(/^\d*$/, 'mensaje').optional()
+})
+const result = schema.safeParse(datos) // { success, data } o { success: false, error }
+if (!result.success) {
+  const fieldErrors = result.error.flatten().fieldErrors // { firstname?: string[], ... }
+}
+```
+
+**Gotchas reales encontrados:**
+- **Orden de `.optional()`:** `z.string().optional()` envuelve el string en un tipo distinto (`ZodOptional`) que ya no expone métodos propios de string (`.regex()`, `.min()`...). Hay que encadenar las reglas específicas *antes* de `.optional()`: `z.string().regex(...).optional()`, nunca al revés. Confirmado con `node -e` ejecutando ambos órdenes.
+- **"Required" no significa "no vacío":** sin `.optional()`, zod solo exige que la clave exista y no sea `undefined` — un string vacío `''` sigue siendo un string válido y pasa. Lo que de verdad falla sin `.optional()` es que la clave esté *ausente* del objeto. Como `formData.get(...)` de un `<form>` HTML siempre devuelve la clave (vacía como `''`, nunca ausente), `.optional()` resultó innecesario una vez el regex ya admitía cadena vacía (`/^\d*$/` en vez de `/^\d+$/`).
+- **zod no aborta en el primer fallo por campo:** si un campo tiene varias reglas encadenas (`.min().max().regex()`), zod acumula *todos* los issues que fallen, no solo el primero. Confirmado forzando un valor que rompe 3 reglas a la vez — las 3 aparecieron en `fieldErrors`.
+- **No hace falta tipar a mano el resultado de zod:** el primer intento fue tipar `fieldErrors` derivándolo de los tipos internos de zod (`z.inferFlattenedErrors`, luego `z.treeifyError` con varios `NonNullable` anidados) — funcionaba, pero era un indicador de ir contracorriente de la API. La solución real fue más simple: usar `result.error.flatten().fieldErrors` (forma plana, sin anidar) y tipar el campo a mano como `Record<string, string[] | undefined>`. Lección general: si tipar algo requiere genéricos anidados con varios `NonNullable`, casi siempre la salida es simplificar la estructura de datos, no "tipar mejor".
+- **`flatten()` aparece deprecado en el IDE** (zod v4) a favor de `z.treeifyError()`, pero sigue funcionando y es más simple para este caso (da `{ campo: string[] }` directo, sin la capa extra `{ campo: { errors: string[] } }` de `treeifyError`). El hint de deprecación no es bloqueante.
+
+**UX: mostrar solo el primer mensaje de error por campo.** Aunque zod puede devolver varios mensajes por campo, la convención estándar (la que sigue Formik por debajo vía Yup, que por defecto usa `abortEarly: true`) es mostrar solo `fieldErrors.campo?.[0]`, no todos apilados. Motivo: cuando varias reglas fallan a la vez sobre el mismo campo, casi siempre son redundantes para la acción que el usuario tiene que tomar (arreglar el formato ya resuelve ambas); mostrar todos los mensajes añade ruido sin información nueva. El resto de reglas se revela de forma progresiva en el siguiente intento si sigue habiendo problemas.
+
+## Feedback de carga con `useFormStatus`
+
+Vivido en `exercises/01-server-actions-basico/app/useFormStatus/` (formulario de valoración de producto, combinando zod + `useActionState` + `useFormStatus`).
+
+**Por qué `useFormStatus` exige un componente hijo del `<form>`, no el mismo componente que lo renderiza:**
+- `useFormStatus()` no recibe argumentos: siempre busca el `<form>` ancestro más cercano en el árbol ya montado.
+- El `<form>`, al renderizarse, actúa como un **proveedor implícito** del estado de su propia petición — análogo a un Context de React. Igual que no se puede consumir un Context en el mismo componente que lo provee, no se puede preguntar por el estado de un `<form>` desde el componente que todavía lo está construyendo: en ese instante del render, ese `<form>` concreto aún no existe como ancestro montado al que preguntarle.
+- Por eso el patrón correcto es extraer la parte de la UI que necesita `pending` (un botón, un spinner, el formulario entero) a un componente separado que se renderice **dentro** del `<form>`.
+
+**`useFormStatus` vs el `isPending` de `useActionState` — no son redundantes, resuelven problemas distintos:**
+- `useActionState` ya devuelve su propio `isPending` como tercer valor (`const [state, formAction, isPending] = useActionState(...)`). Técnicamente esa información ya existe sin necesidad de `useFormStatus`.
+- La diferencia es de **alcance**, no de datos: ese `isPending` solo vive en el componente donde se llamó al hook. Para que un componente hijo lo use, habría que pasarlo por *props* explícitamente a través de toda la cadena intermedia (coste real en formularios grandes tipo wizard multi-paso, donde cada paso es un componente distinto pero el `<form>` es uno solo).
+- `useFormStatus` evita ese prop-drilling: cualquier descendiente del `<form>` puede leer `pending` directamente, sin que los componentes intermedios necesiten saber que existe.
+- Además, lo que devuelve `useFormStatus` (`pending`, `data`, `method`, `action`) es **genérico** — `data` es el `FormData` crudo enviado, no el `state` resuelto por el reducer de `useActionState` (que sí tiene la forma particular de cada formulario, p. ej. `fieldErrors`). Esto permite construir componentes como un `SubmitButton` reutilizable en cualquier formulario del proyecto, sin acoplarlo a la forma del estado de ninguna Server Action concreta.
+
+**Confirmación empírica del modelo de reductor del Hito 3 (encolado de `prevState`):** añadiendo temporalmente un `console.log(prevState)` + `await new Promise(r => setTimeout(r, 3000))` al principio de una Server Action, y haciendo doble submit antes de que la primera petición resuelva, se comprobó que:
+- La segunda invocación no se descarta ni se ejecuta en paralelo — se **encola**, y el tiempo total de espera percibido es la suma de ambas latencias (6s con dos delays de 3s), no el máximo.
+- Esa segunda invocación recibe como `prevState` el resultado real que acaba de producir la primera invocación (no el estado inicial que se le pasó a `useActionState` al montar el componente) — justo lo que permite modelar la Server Action como un reductor puro y mantener consistencia entre envíos encolados.
+
 ## Cuándo NO conviene usar una Server Action
 
 Ejemplo claro: un **autocompletado de búsqueda** (input que dispara `onChange` para buscar sugerencias mientras el usuario escribe).

@@ -8,8 +8,8 @@ Escala 0-10 por habilidad. Actualizar al cierre de cada hito del plan (ver [plan
 | Convenciones de rutas (layout/loading/error/not-found) | 4 | 6 | 4 | 2026-10-14 |
 | Data fetching en Server Components | 5 | 6 | 5 | 2026-10-14 |
 | Caching de `fetch` (force-cache / no-store / revalidate) | 5 | 6 | 5 | 2026-10-14 |
-| **Server Actions (mutaciones, validación, errores)** | **1** | **8** | 6 | 2026-10-16 |
-| **Server Actions + UI reactiva (`useOptimistic`, `useFormStatus`, `useActionState`)** | **0** | **6** | 4 | 2026-10-16 |
+| **Server Actions (mutaciones, validación, errores)** | **1** | **8** | 7 | 2026-10-19 |
+| **Server Actions + UI reactiva (`useOptimistic`, `useFormStatus`, `useActionState`)** | **0** | **6** | 5 | 2026-10-22 |
 | Revalidación (`revalidatePath` / `revalidateTag`) | 0 | 5 | 3 | 2026-10-15 |
 | `generateStaticParams` / generación estática dinámica | 0 | 2 | 0 | 2026-10-14 |
 | Middleware / Edge Runtime | 0 | 2 | 0 | 2026-10-14 |

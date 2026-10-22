@@ -52,9 +52,9 @@ Progreso a registrar en [skill-matrix.md](skill-matrix.md) al cierre de cada hit
 
 ---
 
-## Hito 4 (días 7-8): Estado de carga y feedback (`useFormStatus`)
+## Hito 4 (días 7-8): Estado de carga y feedback (`useFormStatus`) ✅ Completado — 2026-10-22
 
-> **Pendiente antes de empezar (petición 2026-10-16):** repasar `zod` antes de entrar en este hito, para sustituir la validación manual del Hito 3 por `zod` antes de añadir `useFormStatus` encima.
+> **Repaso previo completado — 2026-10-19:** sesión dedicada a `zod` (primera vez viendo la librería, con Formik+Yup como referencia previa), aplicado en `exercises/01-server-actions-basico/app/advanced-zod/`, sustituyendo los `if` manuales del Hito 3 por `schema.safeParse()` + `fieldErrors` por campo. Aprendizaje central: no forzar el tipado de los resultados de zod con sus tipos internos (acaba en genéricos anidados con varios `NonNullable`, señal de ir contracorriente); mejor tipar a mano de forma simple (`Record<string, string[] | undefined>`) y usar la forma plana (`flatten()`) en vez de la anidada (`treeifyError()`). También se confirmó y aplicó la convención de UX de mostrar solo el primer mensaje de error por campo. Detalle completo en `formación/serverActions.md`.
 
 **Qué:** mientras la Server Action se ejecuta (p.ej. simulando latencia con un `setTimeout`), el formulario debe reflejarlo.
 
@@ -63,6 +63,8 @@ Progreso a registrar en [skill-matrix.md](skill-matrix.md) al cierre de cada hit
 - Entender por qué `useFormStatus` debe ir en un componente **hijo** del `<form>`, no en el mismo componente que lo renderiza.
 
 **Criterio de aceptación:** poder explicar la relación entre `<form action={...}>`, `useFormStatus` y por qué no hace falta estado global para esto.
+
+> Nota real: implementado en un ejercicio nuevo, `exercises/01-server-actions-basico/app/useFormStatus/` (formulario de valoración de producto, con zod + `useActionState` + `useFormStatus` combinados). El aprendizaje conceptual central fue entender *por qué* `useFormStatus` exige un componente hijo del `<form>`: el `<form>` actúa como un proveedor implícito (análogo a un Context de React) del estado de la petición en curso, así que llamar al hook en el mismo componente que renderiza el `<form>` preguntaría por un ancestro que todavía no existe en ese momento del render. Segundo punto trabajado: `useActionState` ya expone su propio `isPending` (tercer valor del array), así que `useFormStatus` no añade información nueva — lo que aporta es evitar el prop-drilling de ese `pending` a través de árboles de componentes grandes (wizards multi-paso), algo que el usuario ya había vivido en formularios reales fuera de este repo. Experimento adicional hecho en el camino (reutilizando el ejercicio del Hito 3): se añadió un `console.log(prevState)` + delay artificial de 3s en la Server Action para comprobar en vivo que, ante un doble submit antes de que la primera petición resuelva, React encola la segunda invocación y le pasa como `prevState` el resultado real de la primera (no el estado inicial) — confirmando empíricamente el modelo de reductor explicado en el Hito 3. Detalle completo en `formación/serverActions.md`.
 
 ---
 

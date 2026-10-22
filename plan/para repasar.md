@@ -18,6 +18,8 @@ Surgió al depurar por qué la lista de `exercises/01-server-actions-basico/` no
 - Diferencia práctica entre invalidar Router Cache (`revalidatePath`/`revalidateTag` desde una Server Action) e invalidar Full Route Cache, y si son la misma invalidación o dos mecanismos distintos.
 - Por qué, en el ejercicio, mover una función de lectura de un archivo `'use server'` a un módulo plano pareció cambiar el comportamiento de caché — entender si fue por Router Cache, Full Route Cache, o un artefacto de compilación de Turbopack en dev.
 
+> **Mini test 2026-10-20:** el concepto (caché del cliente, F5 fuerza navegación nueva) seguía claro, pero el nombre exacto se perdió ("Router Cache" recordado como algo tipo "ClientCache") y la función de invalidación se confundió con un `invalidateCache` inexistente — es `revalidatePath`. Repasar específicamente la terminología, no solo el mecanismo.
+
 ## Chunks, proceso de build y `.next/static` vs `.next/server` — 2026-10-15
 
 Surgió al revisar en `frontend-ij--web-app` (monorepo de InfoJobs) un ADR sobre resolución de sourcemaps en errores de producción. El concepto quedó razonablemente asentado, pero conviene repasarlo con más calma y, sobre todo, verlo en la práctica dentro de un proyecto Next.js propio (inspeccionar un `.next/` real tras un build):
