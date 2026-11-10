@@ -68,7 +68,7 @@ Progreso a registrar en [skill-matrix.md](skill-matrix.md) al cierre de cada hit
 
 ---
 
-## Hito 5 (días 9-10): UI optimista (`useOptimistic`)
+## Hito 5 (días 9-10): UI optimista (`useOptimistic`) ✅ Completado — 2026-11-06
 
 **Qué:** mejorar la percepción de velocidad mostrando el resultado de la mutación antes de que el servidor confirme.
 
@@ -77,6 +77,8 @@ Progreso a registrar en [skill-matrix.md](skill-matrix.md) al cierre de cada hit
 - Simular un fallo del servidor y observar/manejar el rollback del estado optimista.
 
 **Criterio de aceptación:** demo funcional donde la lista se actualiza "al instante" aunque la Server Action tarde ~1s simulado.
+
+> Nota real: implementado en un ejercicio nuevo, `exercises/01-server-actions-basico/app/05-use-optimistic/` (formulario de alta de usuarios, sin tocar el ejercicio del Hito 2), combinando `useActionState` + `useOptimistic`. El aprendizaje conceptual central fue entender que `useOptimistic` no es un estado independiente: se engancha al propio `state` de `useActionState` como base, y por eso se recalcula automáticamente cada vez que ese estado se consolida con una respuesta real del servidor. Segundo punto trabajado a fondo, con experimento en vivo (dos envíos encolados, el segundo antes de que el primero resuelva): `useOptimistic` no "sustituye" el estado optimista por el real al confirmarse una entrada, sino que mantiene una cola de actualizaciones pendientes y recalcula desde el estado real más reciente + esa cola en cada cambio — por eso un envío posterior no confirmado sobrevive a la confirmación de uno anterior. Tercer punto: por qué un `try/catch` alrededor de la llamada a `addOptimistic`/`update` no captura errores de la Server Action (es síncrono, fire-and-forget, el error llega después de que el `try` ya terminó) y por qué la forma correcta de ver el rollback real es capturar el error dentro de la propia Server Action y devolverlo como parte del `state` (patrón ya usado en el Hito 3), en vez de dejar que escape como excepción no controlada hacia un Error Boundary. Bug real encontrado y resuelto en el camino: mezclar campos individuales del formulario (`firstname`, `lastname`, `phoneNumber`) dentro del tipo del estado global de la lista (`FormOptimisticState`), detectado con `tsc --noEmit`. Detalle completo en `formación/serverActions.md`.
 
 ---
 

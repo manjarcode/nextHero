@@ -111,6 +111,28 @@ Vivido en `exercises/01-server-actions-basico/app/useFormStatus/` (formulario de
 - La segunda invocación no se descarta ni se ejecuta en paralelo — se **encola**, y el tiempo total de espera percibido es la suma de ambas latencias (6s con dos delays de 3s), no el máximo.
 - Esa segunda invocación recibe como `prevState` el resultado real que acaba de producir la primera invocación (no el estado inicial que se le pasó a `useActionState` al montar el componente) — justo lo que permite modelar la Server Action como un reductor puro y mantener consistencia entre envíos encolados.
 
+## UI optimista con `useOptimistic`
+
+Vivido en `exercises/01-server-actions-basico/app/05-use-optimistic/` (formulario de alta de usuarios, combinando `useActionState` + `useOptimistic`).
+
+**API y encaje con `useActionState`:**
+- `useOptimistic(estadoBase, reductor)` devuelve `[estadoOptimista, addOptimistic]`. El `estadoBase` que se le pasa es el propio `state` que devuelve `useActionState` — no un estado independiente. Esa dependencia es la pieza clave de todo el mecanismo: cada vez que `useActionState` consolida una respuesta real del servidor, `state` cambia, y `useOptimistic` se recalcula automáticamente a partir de ese nuevo valor.
+- El reductor `(currentState, payload) => nuevoEstado` sigue el mismo contrato que el de `useActionState` (Hito 3): estado anterior + input → estado nuevo, sin mutar (`[...currentState.users, user]`, nunca `.push()`).
+- `addOptimistic(payload)` es **síncrona** (no es una promesa, no se `await`ea) — dispara el re-render inmediato con el estado optimista. Se llama en la misma función intermedia que se pasa a `action={...}` del `<form>`, justo antes de invocar el dispatch real de `useActionState`.
+
+**Error de diseño real cometido:** meter campos del formulario individual (`firstname`, `lastname`, `phoneNumber`) dentro del tipo de estado global (`FormOptimisticState`), confundiendo "los datos de un `User` que se está creando" con "la forma del estado persistido de toda la lista". La señal de que estaba mal: la Server Action nunca producía esos campos en su `return`, y TypeScript (`tsc --noEmit`) lo señaló como incompatibilidad de tipos en la llamada a `useActionState`. Lección: el estado global de un formulario con lista no necesita espejar los valores de los inputs — esos viven en el DOM (inputs no controlados) o, como mucho, de forma efímera en la función que construye el payload a partir del `FormData`.
+
+**Cómo reconcilia `useOptimistic` dos envíos encolados (sin perder el segundo):**
+- La intuición ingenua es que al llegar el primer estado real confirmado, "se sustituye" el optimista entero y se perdería cualquier envío posterior aún no confirmado. Comprobado en vivo que **no** es así.
+- El mecanismo real: React mantiene una cola de las llamadas a `addOptimistic` que aún no se han asentado (su Server Action asociada sigue en curso). Cada vez que el estado base cambia, `useOptimistic` no muestra ese estado base a pelo — vuelve a aplicar el reductor, en orden, sobre el nuevo estado base, usando solo las entradas de la cola que siguen pendientes. Cuando una entrada se confirma, sale de la cola; las demás se reaplican sobre el estado real ya actualizado.
+- Por eso un segundo envío, hecho mientras el primero todavía no ha resuelto, sobrevive al momento en que el primero se confirma: no se compara contra un snapshot congelado, se recalcula desde cero (estado real más reciente + cola de pendientes) en cada actualización.
+
+**Por qué un `try/catch` alrededor de `addOptimistic(user); update(user)` no captura el error de la Server Action:**
+- `update` (el dispatch de `useActionState`) es síncrono y "fire and forget": no devuelve una promesa que se pueda `await`ear desde la función que lo invoca. El `try` termina de ejecutarse mucho antes de que la Server Action (que puede tardar segundos) decida lanzar su error.
+- Un `try/catch` solo puede capturar excepciones lanzadas de forma síncrona dentro de su bloque, o desde una promesa que esté siendo `await`eada ahí mismo. Como no hay `await`, no hay nada que capturar en ese punto.
+- Si la Server Action hace `throw` sin que nadie lo capture, React lo trata igual que un error de render: burbujea hasta el **Error Boundary** más cercano (en Next.js, el `error.tsx` de la ruta), que desmonta ese árbol — con lo cual no se puede observar el rollback del valor optimista, porque la lista entera desaparece con el resto del componente.
+- Patrón correcto para errores esperables en una mutación (igual que la validación del Hito 3): capturar el error **dentro** de la propia Server Action con try/catch y devolverlo como parte del `state` (p.ej. `{ users: getUsers(), error: '...' }`), en vez de dejar que escape como excepción. Así la Server Action "termina bien" desde el punto de vista de React, la entrada optimista sale de la cola de pendientes al recalcular, y el usuario que falló desaparece de la lista — ahí sí se observa el rollback real, sin que un Error Boundary se interponga.
+
 ## Cuándo NO conviene usar una Server Action
 
 Ejemplo claro: un **autocompletado de búsqueda** (input que dispara `onChange` para buscar sugerencias mientras el usuario escribe).

@@ -28,7 +28,7 @@ export async function save(prevState: FormUserState, formData: FormData): Promis
   if (!result.success) {
     return {
       user,
-      fieldErrors: result.error.flatten().fieldErrors
+      fieldErrors: z.flattenError(result.error).fieldErrors
     }
   }
 
