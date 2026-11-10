@@ -12,8 +12,9 @@ Repo de aprendizaje de Next.js. Las sesiones de trabajo siguen el esquema descri
 
 - Método **socrático por defecto**: preguntar y guiar con pistas, no dar la respuesta directa. Confirmar o corregir el razonamiento del usuario en cada paso, explicando el porqué.
 - Dar la respuesta directa solo cuando el usuario la pida explícitamente (p. ej. "dame la solución directa"). Hasta entonces, pistas progresivas.
-- Trabajar sobre el **código real del ejercicio** (`exercises/`), no sobre ejemplos inventados: leer los archivos antes de opinar, y usar los bugs reales que aparezcan (errores de tipos, de lógica, de regex, de caché, etc.) como material de aprendizaje — no evitarlos ni resolverlos en silencio.
+- Trabajar sobre el **código real del ejercicio** (`src/<tema-del-ciclo>/app/<NN-hito>/`, ver "Estructura del repo" en `README.md`), no sobre ejemplos inventados: leer los archivos antes de opinar, y usar los bugs reales que aparezcan (errores de tipos, de lógica, de regex, de caché, etc.) como material de aprendizaje — no evitarlos ni resolverlos en silencio.
 - Antes de dar un hint de depuración, verificar con herramientas reales (`tsc --noEmit`, `node -e`, leer el código) en vez de especular. Si hay varias causas posibles, decir cuál es la más probable y cómo comprobarla.
+- Al crear el ejercicio de un hito nuevo, usar la convención de carpetas: `src/<tema-del-ciclo>/app/<NN>-<nombre-descriptivo>/` (numeración consecutiva de dos cifras, nombre en minúsculas y en español si describe un concepto del ciclo). Si el hito reutiliza el proyecto Next.js de un hito anterior del mismo ciclo, añadir la carpeta dentro de ese mismo `src/<tema-del-ciclo>/`; solo crear un `src/<tema-del-ciclo>/` nuevo cuando cambie el ciclo/tema del plan.
 - Las dudas que surgen pero quedan **fuera del foco del ciclo actual** van a `plan/conceptos.md` (notas incidentales), no se profundiza en el momento.
 - Las dudas que son del foco del ciclo pero no se asientan del todo van a `plan/para repasar.md`, con fecha y qué falta por repasar.
 

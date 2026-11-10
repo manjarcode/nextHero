@@ -23,7 +23,7 @@ Pasar de usuario básico (sin uso diario de Next.js) a referente interno capaz d
 
 - `assessment/` — diagnóstico de nivel inicial y metodología del test.
 - `plan/` — plan incremental por ciclos, skill matrix de seguimiento y [notas incidentales](plan/notas-incidentales.md) (conceptos fuera de foco encontrados en proyectos reales).
-- `src/server-actions/` — proyecto Next.js con los ejercicios prácticos del ciclo de Server Actions, organizados por hito dentro de `app/` (`01-basic`, `02-validacion-manual`, `03-validacion-zod`, `04-use-form-status`, `05-use-optimistic`).
+- `src/<tema-del-ciclo>/` — un proyecto Next.js por tema/ciclo de aprendizaje (p. ej. `src/server-actions/` para el ciclo actual). Dentro de cada uno, `app/` se organiza por hito con carpetas numeradas (`01-<nombre>`, `02-<nombre>`, ...), una por hito del plan activo correspondiente. Ejemplo actual, ciclo de Server Actions: `01-basic`, `02-validacion-manual`, `03-validacion-zod`, `04-use-form-status`, `05-use-optimistic`.
 
 ## Próximos pasos
 
