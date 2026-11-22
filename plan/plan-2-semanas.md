@@ -82,7 +82,7 @@ Progreso a registrar en [skill-matrix.md](skill-matrix.md) al cierre de cada hit
 
 ---
 
-## Hito 6 (días 11-12): Consolidación — mini-feature completa
+## Hito 6 (días 11-12): Consolidación — mini-feature completa ✅ Completado — 2026-11-22
 
 **Qué:** combinar todo lo anterior en una feature pequeña pero completa, como ejercicio integrador. Ejemplo sugerido: un CRUD simple de "notas" o "tareas" (crear, marcar como completada, borrar), todo con Server Actions.
 
@@ -92,6 +92,8 @@ Progreso a registrar en [skill-matrix.md](skill-matrix.md) al cierre de cada hit
 - Validación + errores + loading state + UI optimista en al menos la acción de creación.
 
 **Criterio de aceptación:** feature usable de principio a fin, sin ningún `fetch` manual del cliente a una API Route.
+
+> Nota real: implementado en `src/server-actions/app/06-consolidacion/` (CRUD de tareas con `createTask`, `toggle`, `remove`), combinando las cinco técnicas de los hitos 1-5 en una sola feature: `zod` + `useActionState` + `useFormStatus` + `useOptimistic` para la creación, y `revalidateTag('tasks')` (en vez de `revalidatePath`) en las tres Server Actions, apoyado en `getTasks` con `'use cache'` + `cacheTag('tasks')`. Cierre del ciclo validado con un test de 10 preguntas (6 test, 2 abiertas, 1 de detectar bug sobre código propio, 1 de código mínimo) — nota de conocimiento autoevaluada 8/10. El aprendizaje conceptual central del cierre fue distinguir dos mecanismos distintos de invalidación que se habían ido viendo por separado: la Router Cache del cliente (Hito 2, problema distinto) frente a la caché de datos de `'use cache'`/`cacheTag` (este ejercicio) — y, dentro de esta última, que `revalidateTag` invalida por **dato** (cualquier función cacheada con esa tag, sin enumerar rutas) no por **ruta**, sin que eso tenga relación con cómo React reconcilia el DOM (confusión detectada en la pregunta 8 del test). Bug real encontrado en el test (pregunta 10, código escrito a mano): `useFormStatus()` desestructurado como tupla (`const [pending] = useFormStatus()`) en vez de objeto (`const { pending } = useFormStatus()`) — confusión de API con `useActionState`, que sí es tupla. Verificado que el código real del ejercicio (`taskForm.tsx`) sí usa la forma correcta (`const { pending } = useFormStatus()`), así que el error quedó solo en la respuesta del test, no en el ejercicio — aun así, confirma que merece la pena fijar la distinción tupla/objeto entre ambos hooks. Detalle completo en `formación/serverActions.md`.
 
 ---
 

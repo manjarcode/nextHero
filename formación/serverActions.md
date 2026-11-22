@@ -143,3 +143,24 @@ Motivos:
 - Es una **lectura**, no una mutación.
 
 Las Server Actions están pensadas para "disparar una vez, esperar respuesta, revalidar caché", no para este patrón. Aquí lo correcto es un Route Handler + `fetch` manual (o `useSWR`/React Query, que ya resuelven debounce/cancelación).
+
+## Consolidación: CRUD de tareas (Hito 6)
+
+Vivido en `src/server-actions/app/06-consolidacion/` (CRUD de tareas: crear, togglear, borrar), integrando en una sola feature todo lo de los hitos 1-5.
+
+**El adaptador entre `useActionState` y una Server Action con firma propia:**
+- `createTask(title, completed)` no tiene la forma `(prevState, formData)` que exige `useActionState` — tiene la firma que de verdad necesita la lógica de negocio.
+- La pieza que reconcilia ambos mundos es una función intermedia (`saveCallback` en `taskList.tsx`), que sí tiene la firma `(prevState, formData)` y es la que se le pasa a `useActionState`. Dentro de ella se extraen los campos del `FormData`, se dispara `addOptimistic(...)` (síncrono, antes de la llamada real) y solo entonces se invoca `createTask(title, completed)` con sus propios argumentos.
+- Consecuencia práctica: la Server Action de negocio queda desacoplada de los detalles de integración con React (no sabe nada de `FormData` ni de estado anterior), y el componente cliente es el único que conoce ambas firmas y las conecta.
+
+**`revalidateTag` vs `revalidatePath` — la diferencia real no es de sintaxis:**
+- Las tres Server Actions (`createTask`, `toggle`, `remove`) invalidan con `revalidateTag('tasks', { expire: 0 })`, no con `revalidatePath('/06-consolidacion')`, porque `getTasks()` está marcada `'use cache'` + `cacheTag('tasks')` — el dato cacheado vive en la capa de caché de datos, no en la de rutas.
+- La ventaja de la tag no es de rendimiento ni de "repintado parcial del DOM" (confusión real detectada en el test de cierre) — React reconcilia el árbol igual en ambos casos. La ventaja es de **granularidad de invalidación**: una tag se adjunta al dato, no a una URL, así que cualquier función `'use cache'` que la use —en cualquier ruta, incluso varias a la vez— se invalida sin tener que enumerarlas. `revalidatePath` exige conocer y mantener la lista de rutas afectadas; `revalidateTag` no.
+
+**Por qué `toggle`/`remove` no necesitan `useActionState` y `createTask` sí:**
+- `toggle` y `remove` se usan como `formAction` directo de un `<form>` por fila, sin pasar por `useActionState`, porque no hay ningún resultado que mostrar en la UI aparte del listado ya revalidado — no hay errores de validación ni estado que reconciliar.
+- `createTask` sí lo necesita porque tiene algo que devolver a la UI (`fieldErrors`) que no es solo "la lista actualizada".
+- Matiz encontrado en el test de cierre: la ausencia de estado `pending` visible en `toggle`/`remove` no provoca errores de servidor en este código (`toggleTask`/`removeTask` son no-ops silenciosos si el `id` ya no existe, por diseño de `tasks.ts`), pero sí es una carencia de UX real — un doble clic en borrar no se nota, y el usuario puede repetir la acción pensando que no se registró.
+
+**Confusión de API real: `useFormStatus` (objeto) vs `useActionState` (tupla).**
+`useActionState` devuelve `[state, formAction, isPending]` (array); `useFormStatus()` devuelve `{ pending, data, method, action }` (objeto). Mezclar la forma de desestructuración de uno con la del otro (`const [pending] = useFormStatus()`) compila pero rompe en ejecución. El código real del ejercicio (`taskForm.tsx`) usa la forma correcta; el error apareció solo al reproducir el patrón de memoria en el test de cierre — señal de que la similitud superficial entre ambos hooks (mismo propósito, "saber si hay una petición en curso") invita a mezclar sus formas de uso.

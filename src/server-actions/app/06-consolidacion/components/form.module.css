@@ -1,0 +1,16 @@
+.form {
+  margin-top: 32px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.button {
+  padding: 4px 8px;
+  font-size: 18px
+}
+
+.warning {
+  color: red;
+}
