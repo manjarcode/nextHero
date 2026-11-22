@@ -15,9 +15,10 @@ Pasar de usuario básico (sin uso diario de Next.js) a referente interno capaz d
 - Entender y poder explicar features recientes/experimentales (PPR) para posicionarme como early adopter.
 - Aplicar middleware y revalidación de caché en escenarios reales.
 
-## Objetivo del ciclo actual (2 semanas)
+## Ciclos de aprendizaje
 
-**Dominar Server Actions** (de 1/10 a 8/10). Ver plan completo en [plan/plan-2-semanas.md](plan/plan-2-semanas.md) y progreso en [plan/skill-matrix.md](plan/skill-matrix.md).
+- **Ciclo 1 — Server Actions** ✅ completado (2026-10-14 → 2026-11-22), de 1/10 a 8/10. Plan y retrospectiva de cierre en [plan/ciclo 1.md](plan/ciclo%201.md).
+- **Ciclo actual — Caché en Next.js**. Plan completo en [plan/ciclo actual.md](plan/ciclo%20actual.md) y progreso en [plan/skill-matrix.md](plan/skill-matrix.md).
 
 ## Estructura del repo
 
@@ -27,7 +28,7 @@ Pasar de usuario básico (sin uso diario de Next.js) a referente interno capaz d
 
 ## Próximos pasos
 
-Empezar por el Hito 1 del [plan de 2 semanas](plan/plan-2-semanas.md#hito-1-días-1-2-server-action-mínima-funcionando).
+Empezar por el Hito 1 del [plan del ciclo actual](plan/ciclo%20actual.md#hito-1-full-route-cache-servidor).
 
 
 ## Sesiones de trabajo

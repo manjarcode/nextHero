@@ -113,3 +113,25 @@ Progreso a registrar en [skill-matrix.md](skill-matrix.md) al cierre de cada hit
 ## Ritmo sugerido
 
 ~1-1.5h/día, 12-14 días naturales (incluye margen de 2 días de colchón si algún hito se alarga). Si el ritmo real es distinto, ajustar fechas, no recortar hitos.
+
+---
+
+## Retrospectiva de cierre — 2026-11-22
+
+**Tiempo:** el ciclo duró 39 días naturales (2026-10-14 → 2026-11-22) frente a los 12-14 previstos, porque no se pudo dedicar una sesión diaria. El plan absorbió bien esa desviación: se ajustó el calendario sin recortar ningún hito, tal como indicaba la nota de "Ritmo sugerido".
+
+**Objetivo explícito — cumplido, superado en dos de tres métricas:**
+
+| Habilidad (foco) | Inicial | Objetivo | Final | Resultado |
+|---|---|---|---|---|
+| Server Actions (mutaciones/validación) | 1 | 8 | 8 | cumplido exacto |
+| Server Actions + UI reactiva | 0 | 6 | 8 | superado (+2) |
+| Revalidación | 0 | 5 | 6 | superado (+1) |
+
+Los seis hitos se cerraron todos, y cada uno dejó al menos un bug real encontrado y resuelto en el camino (mismatch de tipos, regex mal escrita, input sin `onChange`, confusión objeto/tupla `useFormStatus`/`useActionState`, error de diseño de estado en `useOptimistic`) — el patrón de aprendizaje que busca este repo (trabajar sobre bugs reales, no ejemplos inventados) se sostuvo de principio a fin.
+
+**Progreso fuera de foco — ninguno, contra la percepción inicial:** se revisó el historial de `skill-matrix.md` y ninguna fila fuera de las tres de foco se movió en este ciclo (Server/Client Components, rutas, data fetching, caching de `fetch`, `generateStaticParams`, Middleware, Streaming/Suspense, PPR siguen en su valor del 14/10). Lo único relacionado son dos notas incidentales sin puntuar en `plan/conceptos.md` (`connection()` de Cache Components, webhooks vs Server Actions) — correctamente fuera de la matriz, no progreso no reflejado.
+
+**Deuda abierta identificada como prioritaria:** de los tres pendientes en `plan/para repasar.md`, el de **Router Cache vs Full Route Cache** (abierto desde el 2026-10-15) resultó ser la causa raíz de una confusión real detectada en el test de cierre del Hito 6 (invalidación de caché vs reconciliación de DOM) — señal de que seguía sin asentarse y de que es el pendiente con más impacto práctico inmediato. Los otros dos (mecanismo interno del progressive enhancement, chunks/`.next/static` vs `.next/server`) quedan para un ciclo futuro, sin relación directa con caché.
+
+**Decisión de cierre:** el ciclo 2 (ver [ciclo actual.md](ciclo%20actual.md)) se dedica a caché de Next.js como sistema, en vez de abrir Middleware/PPR/`generateStaticParams` como estaba previsto — priorizando cerrar la deuda detectada sobre avanzar a temas nuevos.

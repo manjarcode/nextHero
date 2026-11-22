@@ -4,7 +4,7 @@ Repo de aprendizaje de Next.js. Las sesiones de trabajo siguen el esquema descri
 
 ## 1. Recordatorio (inicio de sesión)
 
-- Antes de nada, leer `plan/plan-2-semanas.md` y `plan/skill-matrix.md` para saber en qué hito está el usuario.
+- Antes de nada, leer `plan/ciclo actual.md` y `plan/skill-matrix.md` para saber en qué hito está el usuario. (`plan/ciclo actual.md` es siempre el plan del ciclo vigente; los ciclos cerrados quedan archivados como `plan/ciclo <N>.md`.)
 - Resumen breve (2-4 frases) de lo visto en la sesión anterior, basado en las notas reales dejadas en el plan y en `formación/`.
 - Cerrar el recordatorio con **una pregunta** que compruebe si el concepto clave de la sesión anterior quedó asentado. No seguir a la fase de estudio hasta tener respuesta.
 
@@ -20,7 +20,8 @@ Repo de aprendizaje de Next.js. Las sesiones de trabajo siguen el esquema descri
 
 ## 3. Wrap-up (cierre de sesión)
 
-- Actualizar `plan/plan-2-semanas.md`: marcar el hito como completado con fecha real, y añadir una nota con el aprendizaje conceptual central + los bugs reales encontrados en el camino.
+- Actualizar `plan/ciclo actual.md`: marcar el hito como completado con fecha real, y añadir una nota con el aprendizaje conceptual central + los bugs reales encontrados en el camino.
+- Al cerrar el último hito de un ciclo: añadir una sección de retrospectiva al final de `plan/ciclo actual.md`, luego renombrarlo a `plan/ciclo <N>.md` (siguiente número correlativo) y crear un nuevo `plan/ciclo actual.md` con el plan del siguiente ciclo — actualizando los enlaces de `README.md` y `plan/skill-matrix.md` que apunten al fichero renombrado.
 - Actualizar `plan/skill-matrix.md`: subir el nivel de las filas afectadas, con fecha.
 - Añadir una sección nueva al documento de `formación/` correspondiente (p. ej. `serverActions.md`) con el razonamiento conceptual trabajado en la sesión — pensado como material reutilizable para la futura charla interna, no como bitácora.
 - Cerrar con **una pregunta de refuerzo que quede estrictamente dentro de lo trabajado en la sesión actual**. No anticipar hitos o hooks futuros del plan todavía no vistos — eso rompe el objetivo de comprobar retención de lo ya dado.
